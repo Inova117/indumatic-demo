@@ -16,6 +16,8 @@ import {
   IconBolt,
   IconCheck,
   IconShield,
+  IconMail,
+  IconPhone,
 } from './icons'
 import { cadencias } from '../mockData'
 
@@ -24,8 +26,8 @@ import { cadencias } from '../mockData'
 // ---------------------------------------------------------------------------
 const NW = 226 // ancho de nodo
 const NH = 66 // alto de nodo
-const GRAPH_W = 3860
-const GRAPH_H = 640
+const GRAPH_W = 4450
+const GRAPH_H = 660
 
 const TIPOS = {
   trigger: { chip: 'bg-emerald-500', tag: 'Disparador', tagCls: 'bg-emerald-50 text-emerald-600', border: 'border-emerald-200' },
@@ -33,9 +35,10 @@ const TIPOS = {
   function: { chip: 'bg-violet-500', tag: 'Función', tagCls: 'bg-violet-50 text-violet-600', border: 'border-violet-200' },
   switch: { chip: 'bg-amber-500', tag: 'Condición', tagCls: 'bg-amber-50 text-amber-600', border: 'border-amber-200' },
   whatsapp: { chip: 'bg-[#25d366]', tag: 'WhatsApp', tagCls: 'bg-emerald-50 text-emerald-600', border: 'border-emerald-200' },
+  email: { chip: 'bg-brand-600', tag: 'Email', tagCls: 'bg-brand-50 text-brand-600', border: 'border-brand-200' },
   set: { chip: 'bg-indigo-500', tag: 'Plantilla', tagCls: 'bg-indigo-50 text-indigo-600', border: 'border-indigo-200' },
   wait: { chip: 'bg-slate-400', tag: 'Espera', tagCls: 'bg-slate-100 text-slate-500', border: 'border-slate-200' },
-  notify: { chip: 'bg-rose-500', tag: 'Notificación', tagCls: 'bg-rose-50 text-rose-600', border: 'border-rose-200' },
+  notify: { chip: 'bg-rose-500', tag: 'Tarea humana', tagCls: 'bg-rose-50 text-rose-600', border: 'border-rose-200' },
 }
 
 const NODES = [
@@ -49,14 +52,18 @@ const NODES = [
   { id: 'sw_cadI', x: 1200, y: 255, tipo: 'switch', icon: IconBranch, titulo: 'Etapa de cadencia', sub: 'Informal · −3·0·+5·+12' },
   { id: 'set_tplI', x: 1490, y: 255, tipo: 'set', icon: IconWorkflow, titulo: 'Plantilla tono cercano', sub: 'Redactar mensaje' },
   { id: 'fn_link', x: 1780, y: 145, tipo: 'function', icon: IconCard, titulo: 'Generar link de pago', sub: 'Pasarela · enlace único' },
-  { id: 'wa_send', x: 2070, y: 145, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar recordatorio', sub: 'WhatsApp Business API' },
-  { id: 'wait_win', x: 2360, y: 145, tipo: 'wait', icon: IconClock, titulo: 'Ventana de espera', sub: 'Hasta el próximo paso' },
-  { id: 'if_pay', x: 2650, y: 145, tipo: 'switch', icon: IconBranch, titulo: '¿Pago recibido?', sub: 'Webhook pasarela · IF' },
-  { id: 'db_paid', x: 2940, y: 40, tipo: 'data', icon: IconDatabase, titulo: 'Marcar factura pagada', sub: 'Actualizar estado' },
-  { id: 'wa_receipt', x: 3230, y: 40, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar comprobante', sub: 'WhatsApp · confirmación' },
-  { id: 'db_upd', x: 3520, y: 40, tipo: 'data', icon: IconDatabase, titulo: 'Actualizar cartera y KPIs', sub: 'Dashboard en vivo' },
-  { id: 'if_last', x: 2940, y: 275, tipo: 'switch', icon: IconBranch, titulo: '¿Última etapa de cadencia?', sub: 'IF · fin de la secuencia' },
-  { id: 'notify', x: 3230, y: 275, tipo: 'notify', icon: IconBell, titulo: 'Escalar a analista', sub: 'Notificar + crear tarea' },
+  // ---- MOTOR MULTICANAL: elegir canal, enviar, y respaldar si falla ----------
+  { id: 'sw_canal', x: 2070, y: 145, tipo: 'switch', icon: IconBranch, titulo: '¿Qué canal usar?', sub: '¿Autorizó WhatsApp? ¿Nº sano?' },
+  { id: 'wa_send', x: 2360, y: 35, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar por WhatsApp', sub: 'Plantilla Utility aprobada' },
+  { id: 'mail_send', x: 2360, y: 255, tipo: 'email', icon: IconMail, titulo: 'Enviar por Email', sub: 'Mismo enlace de pago' },
+  { id: 'if_deliv', x: 2650, y: 35, tipo: 'switch', icon: IconBranch, titulo: '¿Se entregó?', sub: 'Webhook de estado · Meta' },
+  { id: 'wait_win', x: 2940, y: 145, tipo: 'wait', icon: IconClock, titulo: 'Ventana de espera', sub: 'Hasta el próximo paso' },
+  { id: 'if_pay', x: 3230, y: 145, tipo: 'switch', icon: IconBranch, titulo: '¿Pago recibido?', sub: 'Webhook pasarela · IF' },
+  { id: 'db_paid', x: 3520, y: 35, tipo: 'data', icon: IconDatabase, titulo: 'Marcar factura pagada', sub: 'Actualizar estado' },
+  { id: 'wa_receipt', x: 3810, y: 35, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar comprobante', sub: 'Confirmación al cliente' },
+  { id: 'db_upd', x: 4100, y: 35, tipo: 'data', icon: IconDatabase, titulo: 'Actualizar cartera y KPIs', sub: 'Dashboard en vivo' },
+  { id: 'if_last', x: 3520, y: 275, tipo: 'switch', icon: IconBranch, titulo: '¿Última etapa de cadencia?', sub: 'IF · fin de la secuencia' },
+  { id: 'notify', x: 3810, y: 275, tipo: 'notify', icon: IconPhone, titulo: 'Escalar a analista', sub: 'Tarea de llamada · no mensaje' },
 ]
 
 const EDGES = [
@@ -70,8 +77,15 @@ const EDGES = [
   { from: 'set_tplE', to: 'fn_link' },
   { from: 'sw_cadI', to: 'set_tplI' },
   { from: 'set_tplI', to: 'fn_link' },
-  { from: 'fn_link', to: 'wa_send' },
-  { from: 'wa_send', to: 'wait_win' },
+  { from: 'fn_link', to: 'sw_canal' },
+  // Decisión de canal
+  { from: 'sw_canal', fromPort: 'a', to: 'wa_send', label: 'Autorizado', accent: 'emerald' },
+  { from: 'sw_canal', fromPort: 'b', to: 'mail_send', label: 'Sin autorización', accent: 'blue' },
+  { from: 'wa_send', to: 'if_deliv' },
+  { from: 'if_deliv', fromPort: 'a', to: 'wait_win', label: 'Entregado', accent: 'emerald' },
+  // RESPALDO AUTOMÁTICO: si WhatsApp falla, reenvía por email solo.
+  { from: 'if_deliv', fromPort: 'b', to: 'mail_send', label: 'Falló · 132015 → Email', accent: 'amber', fallback: true },
+  { from: 'mail_send', to: 'wait_win' },
   { from: 'wait_win', to: 'if_pay' },
   { from: 'if_pay', fromPort: 'a', to: 'db_paid', label: 'Sí, pagó', accent: 'emerald' },
   { from: 'db_paid', to: 'wa_receipt' },
@@ -159,21 +173,36 @@ const DOC_PHASES = [
   },
   {
     letra: 'E',
-    nombre: 'Generación y envío',
-    resumen: 'Crea el enlace de pago y envía el recordatorio.',
+    nombre: 'Motor multicanal · el corazón del sistema',
+    resumen: 'Genera el enlace, elige el canal y respalda solo si algo falla.',
     nodos: [
       {
         n: 10, tipo: 'function', icon: IconCard, titulo: 'Generar link de pago',
         que: 'Crea un enlace de pago único para esa factura en la pasarela, vinculado a su número.',
-        importa: 'El cliente paga desde el mismo WhatsApp: menos fricción, se cobra más rápido.',
+        importa: 'El mismo enlace viaja por cualquier canal. El cliente paga en un clic, sin llamar ni ir al banco.',
       },
       {
-        n: 11, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar recordatorio',
-        que: 'Envía el mensaje por WhatsApp Business API con el enlace de pago y registra el paso enviado.',
-        importa: 'Es lo que dispara el botón “Ejecutar recordatorios” de la pantalla Cartera.',
+        n: 11, tipo: 'switch', icon: IconBranch, titulo: '¿Qué canal usar?',
+        que: 'Comprueba dos cosas: si el cliente autorizó WhatsApp, y si la salud del número está en verde. Si ambas se cumplen, usa WhatsApp; si no, email.',
+        importa: 'WhatsApp es el canal, no el producto. Si no está disponible, el cobro sigue igual por otro lado.',
       },
       {
-        n: 12, tipo: 'wait', icon: IconClock, titulo: 'Ventana de espera',
+        n: 12, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar por WhatsApp',
+        que: 'Envía una plantilla Utility aprobada por Meta, con el enlace de pago y una salida fácil para quien no quiera más mensajes.',
+        importa: 'Mejor tasa de lectura y de pago. La salida fácil evita bloqueos, que son lo que castiga Meta.',
+      },
+      {
+        n: 13, tipo: 'email', icon: IconMail, titulo: 'Enviar por Email',
+        que: 'Envía el mismo recordatorio con el mismo enlace de pago, sin depender de plataformas externas.',
+        importa: 'Es la red de seguridad: cubre a los clientes sin autorización y cualquier fallo de WhatsApp.',
+      },
+      {
+        n: 14, tipo: 'switch', icon: IconBranch, titulo: '¿Se entregó?',
+        que: 'Meta avisa por webhook si el mensaje no llegó (código 132015). Si falla, el sistema reenvía por email automáticamente.',
+        importa: 'Ninguna factura se queda sin gestionar porque WhatsApp haya fallado. El respaldo es automático.',
+      },
+      {
+        n: 15, tipo: 'wait', icon: IconClock, titulo: 'Ventana de espera',
         que: 'Pausa el flujo hasta el próximo paso de la cadencia o hasta que llegue la confirmación de pago.',
         importa: 'Da un tiempo razonable para pagar, sin ser invasivo.',
       },
@@ -185,7 +214,7 @@ const DOC_PHASES = [
     resumen: 'El momento de la verdad: ¿pagó o no?',
     nodos: [
       {
-        n: 13, tipo: 'switch', icon: IconBranch, titulo: '¿Pago recibido?',
+        n: 16, tipo: 'switch', icon: IconBranch, titulo: '¿Pago recibido?',
         que: 'Un IF comprueba, vía webhook de la pasarela, si la factura fue pagada, y bifurca en “Sí” o “No”.',
       },
     ],
@@ -196,16 +225,16 @@ const DOC_PHASES = [
     resumen: 'Registra el pago y actualiza todo, solo.',
     nodos: [
       {
-        n: 14, tipo: 'data', icon: IconDatabase, titulo: 'Marcar factura pagada',
+        n: 17, tipo: 'data', icon: IconDatabase, titulo: 'Marcar factura pagada',
         que: 'Cambia el estado de la factura a Pagado con fecha y monto; el cliente sale de la mora.',
       },
       {
-        n: 15, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar comprobante',
-        que: 'Envía por WhatsApp la confirmación / comprobante del pago.',
+        n: 18, tipo: 'whatsapp', icon: IconWhatsApp, titulo: 'Enviar comprobante',
+        que: 'Envía la confirmación del pago por el mismo canal por el que se contactó al cliente.',
         importa: 'Cierra el círculo con una buena experiencia y deja constancia.',
       },
       {
-        n: 16, tipo: 'data', icon: IconDatabase, titulo: 'Actualizar cartera y KPIs',
+        n: 19, tipo: 'data', icon: IconDatabase, titulo: 'Actualizar cartera y KPIs',
         que: 'Recalcula en vivo la cartera vencida, el recuperado del mes, los clientes en mora y los días de cobro.',
         importa: 'El tablero de Cartera y Reportes refleja el cobro al instante.',
       },
@@ -213,17 +242,17 @@ const DOC_PHASES = [
   },
   {
     letra: 'H',
-    nombre: 'No pagó · persistencia y escalamiento',
-    resumen: 'Insiste con criterio y escala solo lo difícil.',
+    nombre: 'No pagó · escalamiento a una persona',
+    resumen: 'Insiste con criterio y escala solo lo difícil — nunca con presión.',
     nodos: [
       {
-        n: 17, tipo: 'switch', icon: IconBranch, titulo: '¿Última etapa de cadencia?',
+        n: 20, tipo: 'switch', icon: IconBranch, titulo: '¿Última etapa de cadencia?',
         que: 'Un IF evalúa si ya se agotaron todos los pasos de la cadencia (+20 en Empresa, +12 en Informal).',
       },
       {
-        n: 18, tipo: 'notify', icon: IconBell, titulo: 'Escalar a analista',
-        que: 'Si la cadencia automática no logró el cobro, notifica al analista y crea una tarea para gestión manual.',
-        importa: 'La persona interviene solo en los casos difíciles, no en los cientos de recordatorios rutinarios.',
+        n: 21, tipo: 'notify', icon: IconPhone, titulo: 'Escalar a analista',
+        que: 'Si la cadencia no logró el cobro, crea una TAREA DE LLAMADA para el analista. No envía un mensaje conminatorio.',
+        importa: 'El tono duro nunca va por WhatsApp: eso es lo que genera bloqueos y pone en riesgo el número. La conversación difícil la tiene una persona.',
       },
     ],
   },
@@ -330,6 +359,10 @@ function edgePath(e) {
     // Ciclo de reintento: gran arco por debajo del flujo
     return `M ${p1.x} ${p1.y} C ${p1.x + 220} ${p1.y + 300}, ${p2.x - 240} ${p2.y + 360}, ${p2.x} ${p2.y}`
   }
+  if (e.fallback) {
+    // Respaldo automático: arco corto hacia atrás y abajo, hacia el canal alterno
+    return `M ${p1.x} ${p1.y} C ${p1.x + 150} ${p1.y + 150}, ${p2.x - 170} ${p2.y - 140}, ${p2.x} ${p2.y}`
+  }
   const dx = p2.x - p1.x
   const c = Math.max(Math.min(Math.abs(dx) * 0.55, 150), 45)
   return `M ${p1.x} ${p1.y} C ${p1.x + c} ${p1.y}, ${p2.x - c} ${p2.y}, ${p2.x} ${p2.y}`
@@ -341,6 +374,7 @@ function edgeLabelPos(e) {
   const p1 = outPoint(from, e.fromPort)
   const p2 = inPoint(to)
   if (e.loop) return { x: (p1.x + p2.x) / 2, y: Math.max(p1.y, p2.y) + 250 }
+  if (e.fallback) return { x: (p1.x + p2.x) / 2 + 30, y: (p1.y + p2.y) / 2 + 34 }
   return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 - 10 }
 }
 
@@ -348,6 +382,7 @@ const ACCENTS = {
   emerald: '#10b981',
   rose: '#f43f5e',
   amber: '#f59e0b',
+  blue: '#1e4f9c',
 }
 
 function FlowNode({ node }) {
@@ -446,10 +481,10 @@ export default function Automatizaciones() {
           </div>
           <div className="flex flex-wrap gap-2">
             {[
-              { n: '18', l: 'nodos' },
-              { n: '5', l: 'integraciones' },
-              { n: '4', l: 'ramas' },
-              { n: '1', l: 'ciclo de reintento' },
+              { n: '21', l: 'nodos' },
+              { n: '6', l: 'integraciones' },
+              { n: '3', l: 'canales' },
+              { n: '1', l: 'respaldo automático' },
             ].map((s) => (
               <div key={s.l} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
                 <div className="text-lg font-extrabold leading-none text-slate-800 tnum">{s.n}</div>
@@ -537,8 +572,16 @@ export default function Automatizaciones() {
                 const marker = e.accent ? `url(#arrow-${e.accent})` : 'url(#arrow)'
                 return (
                   <g key={i}>
-                    <path d={d} fill="none" stroke={color} strokeWidth={e.loop ? 2 : 2.4} strokeOpacity={e.loop ? 0.55 : 0.9} markerEnd={marker} strokeDasharray={e.loop ? '7 7' : undefined} />
-                    {!e.loop && (
+                    <path
+                      d={d}
+                      fill="none"
+                      stroke={color}
+                      strokeWidth={e.loop ? 2 : 2.4}
+                      strokeOpacity={e.loop ? 0.55 : 0.9}
+                      markerEnd={marker}
+                      strokeDasharray={e.loop || e.fallback ? '7 7' : undefined}
+                    />
+                    {!e.loop && !e.fallback && (
                       <path d={d} fill="none" stroke={color} strokeWidth={2.4} strokeOpacity={0.5} className="flow-dash" />
                     )}
                   </g>
@@ -549,13 +592,13 @@ export default function Automatizaciones() {
             {/* Etiquetas de conexión */}
             {EDGES.filter((e) => e.label).map((e, i) => {
               const pos = edgeLabelPos(e)
-              const bg = e.accent
-                ? e.accent === 'emerald'
-                  ? 'bg-emerald-500'
-                  : e.accent === 'rose'
-                    ? 'bg-rose-500'
-                    : 'bg-amber-500'
-                : 'bg-slate-400'
+              const BG = {
+                emerald: 'bg-emerald-500',
+                rose: 'bg-rose-500',
+                amber: 'bg-amber-500',
+                blue: 'bg-brand-600',
+              }
+              const bg = BG[e.accent] || 'bg-slate-400'
               return (
                 <span
                   key={i}

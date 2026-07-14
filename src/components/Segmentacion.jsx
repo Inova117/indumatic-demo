@@ -1,5 +1,14 @@
 import { cadencias } from '../mockData'
-import { IconBuilding, IconUser, IconWhatsApp, IconCheck, IconSegment } from './icons'
+import {
+  IconBuilding,
+  IconUser,
+  IconWhatsApp,
+  IconCheck,
+  IconSegment,
+  IconShield,
+  IconPhone,
+  IconMail,
+} from './icons'
 
 const TEMAS = {
   Empresa: {
@@ -73,18 +82,22 @@ function CadenciaCard({ tipoKey }) {
           <div className={`absolute left-5 right-5 top-[18px] h-0.5 ${tema.line}`} />
           {cad.pasos.map((paso) => {
             const esVenc = paso.dia === 0
+            const esTarea = paso.tipo === 'tarea'
             return (
               <div key={paso.dia} className="relative z-10 flex w-1/4 flex-col items-center px-1 text-center">
                 <div
                   className={`grid h-9 w-9 place-items-center rounded-full text-[11px] font-bold text-white shadow-sm ${
-                    esVenc ? `${tema.nodeVenc} ring-4` : tema.node
+                    esTarea ? 'bg-rose-500' : esVenc ? `${tema.nodeVenc} ring-4` : tema.node
                   }`}
                 >
-                  {etiquetaDia(paso.dia)}
+                  {esTarea ? <IconPhone className="w-4 h-4" /> : etiquetaDia(paso.dia)}
                 </div>
                 <div className="mt-2 text-[11px] font-semibold leading-tight text-slate-700">
                   {paso.etiqueta}
                 </div>
+                {esTarea && (
+                  <div className="mt-0.5 text-[10px] font-medium text-rose-500">Persona, no mensaje</div>
+                )}
               </div>
             )
           })}
@@ -153,6 +166,135 @@ export default function Segmentacion() {
         </div>
         <div className="animate-fadeUp" style={{ animationDelay: '160ms' }}>
           <CadenciaCard tipoKey="Informal" />
+        </div>
+      </div>
+
+      {/* Canales y respaldo — el motor no depende de un solo canal */}
+      <div
+        className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card animate-fadeUp"
+        style={{ animationDelay: '200ms' }}
+      >
+        <div className="border-b border-slate-100 px-6 py-5">
+          <h3 className="text-base font-bold text-slate-900">Canales y respaldo automático</h3>
+          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-500">
+            WhatsApp es el canal que mejor convierte, pero <strong className="text-slate-700">no es el
+            producto</strong>. Si un cliente no autorizó WhatsApp, o si un mensaje no se entrega, el motor
+            cambia de canal solo. El cobro nunca se detiene.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 divide-y divide-slate-100 md:grid-cols-3 md:divide-x md:divide-y-0">
+          <div className="p-5">
+            <div className="flex items-center gap-2.5">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#25d366] text-white">
+                <IconWhatsApp className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="text-sm font-bold text-slate-800">WhatsApp</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-600">
+                  Canal principal
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-[13px] leading-relaxed text-slate-500">
+              Mejor tasa de lectura y de pago. Requiere que el cliente lo haya autorizado y que la salud
+              del número esté en verde.
+            </p>
+          </div>
+
+          <div className="p-5">
+            <div className="flex items-center gap-2.5">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-600 text-white">
+                <IconMail className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="text-sm font-bold text-slate-800">Email</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">
+                  Siempre disponible
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-[13px] leading-relaxed text-slate-500">
+              Sin autorizaciones ni dependencia de plataformas externas. Lleva el mismo enlace de pago.
+              Es la red de seguridad del sistema.
+            </p>
+          </div>
+
+          <div className="p-5">
+            <div className="flex items-center gap-2.5">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-rose-500 text-white">
+                <IconPhone className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="text-sm font-bold text-slate-800">Persona</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-rose-500">
+                  Solo lo difícil
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-[13px] leading-relaxed text-slate-500">
+              El escalamiento <strong className="text-slate-700">no es un mensaje conminatorio</strong>:
+              es una tarea de llamada para el analista. El tono duro nunca va por WhatsApp.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-slate-100 bg-slate-50 px-6 py-3.5 text-[13px] text-slate-600">
+          <span className="font-semibold text-slate-700">Regla del motor:</span>
+          <span className="rounded-md bg-white px-2 py-0.5 font-medium text-emerald-700 ring-1 ring-emerald-200">
+            ¿Autorizó WhatsApp y el número está sano?
+          </span>
+          <span className="text-slate-400">→ WhatsApp.</span>
+          <span className="rounded-md bg-white px-2 py-0.5 font-medium text-brand-700 ring-1 ring-brand-200">
+            ¿No, o el envío falló?
+          </span>
+          <span className="text-slate-400">→ Email, automáticamente.</span>
+        </div>
+      </div>
+
+      {/* Reglas de contacto responsable */}
+      <div
+        className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-card animate-fadeUp"
+        style={{ animationDelay: '220ms' }}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
+              <IconShield className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Reglas de contacto responsable</h3>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
+                El sistema respeta por diseño los límites que la normativa ecuatoriana fija para la
+                gestión de cobro. Ninguna cadencia puede saltárselos.
+              </p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <IconCheck className="w-3.5 h-3.5" />
+            Aplicado automáticamente
+          </span>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { t: 'Horario permitido', d: 'Solo entre 07h00 y 20h00.' },
+            { t: 'Frecuencia máxima', d: 'Un mensaje al día por el mismo medio.' },
+            { t: 'Días no hábiles', d: 'Nunca fines de semana ni feriados.' },
+            { t: 'Número identificable', d: 'Siempre desde la línea oficial de la empresa.' },
+            { t: 'Sin contacto a terceros', d: 'Solo al deudor, codeudor o garante.' },
+            { t: 'Sin presión indebida', d: 'Tono cordial; nunca amenazante ni humillante.' },
+          ].map((r) => (
+            <div key={r.t} className="flex items-start gap-2.5 rounded-xl bg-slate-50 px-3.5 py-3">
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">
+                <IconCheck className="w-3.5 h-3.5" />
+              </span>
+              <div>
+                <div className="text-[13px] font-semibold text-slate-800">{r.t}</div>
+                <div className="text-[12.5px] leading-relaxed text-slate-500">{r.d}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

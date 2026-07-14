@@ -77,35 +77,59 @@ export function esEnMora(estado) {
   return ESTADOS_MORA.includes(estado)
 }
 
-// ---- Secuencia de WhatsApp por cliente -------------------------------------
-// Construye la conversación automática según el segmento y la mora del cliente.
-export function construirConversacion(cli) {
+// ---- MOTOR MULTICANAL ------------------------------------------------------
+//  WhatsApp es UN canal, no el producto. El sistema elige el canal según:
+//   1. ¿El cliente autorizó WhatsApp (opt-in)?  2. ¿La salud del número está en verde?
+//  Si algo falla, cae automáticamente al siguiente canal. El cobro nunca se detiene.
+// ---------------------------------------------------------------------------
+export function elegirCanal(cli, saludEstado = 'verde') {
+  if (!cli.optIn) return 'email' // sin autorización → nunca WhatsApp
+  if (saludEstado !== 'verde') return 'email' // número en riesgo → el sistema se auto-protege
+  return 'whatsapp'
+}
+
+// Motivo por el que NO se usa WhatsApp (para mostrarlo en la interfaz)
+export function motivoCanal(cli, saludEstado = 'verde') {
+  if (!cli.optIn) return 'Sin autorización de WhatsApp'
+  if (saludEstado !== 'verde') return 'WhatsApp en pausa — protegiendo el número'
+  return null
+}
+
+// ---- Secuencia de recordatorios por cliente --------------------------------
+// Construye la secuencia automática según el segmento, la mora y el canal.
+export function construirConversacion(cli, saludEstado = 'verde') {
   const cad = cadencias[cli.tipo]
   const mora = diasMora(cli.vence)
   const nombre = cli.nombreCorto
   const monto = formatMoney(cli.monto)
   const fecha = formatDate(cli.vence)
+  const canal = elegirCanal(cli, saludEstado)
 
   const mensajes = cad.pasos.map((paso, i) => {
     const enviado = mora >= paso.dia
     const fechaEnvio = addDays(cli.vence, paso.dia)
-    const texto = textoMensaje(cli.tipo, i, { nombre, monto, fecha, factura: cli.factura, dia: paso.dia })
+    const esTarea = paso.tipo === 'tarea'
     return {
       id: `${cli.id}-${i}`,
       dia: paso.dia,
       etiqueta: paso.etiqueta,
       enviado,
+      esTarea, // El escalamiento NO es un mensaje: es una tarea humana.
       fechaEnvio,
       fechaChip: formatChatDate(fechaEnvio),
       hora: HORAS[i],
-      texto,
-      conBotonPago: paso.tipo !== 'escalado',
+      texto: esTarea
+        ? null
+        : textoMensaje(cli.tipo, i, { nombre, monto, fecha, factura: cli.factura, dia: paso.dia }),
+      asunto: esTarea ? null : asuntoMensaje(i, { factura: cli.factura, fecha, dia: paso.dia }),
+      conBotonPago: !esTarea,
+      conBaja: !esTarea,
     }
   })
 
   // Si el cliente ya pagó, agregamos su respuesta de confirmación.
   if (cli.estado === 'Pagado') {
-    const ultimoEnviado = [...mensajes].reverse().find((m) => m.enviado) || mensajes[0]
+    const ultimoEnviado = [...mensajes].reverse().find((m) => m.enviado && !m.esTarea) || mensajes[0]
     mensajes.push({
       id: `${cli.id}-pago`,
       entrante: true,
@@ -120,7 +144,21 @@ export function construirConversacion(cli) {
     })
   }
 
-  return mensajes
+  return { canal, mensajes }
+}
+
+// Asunto para el canal email
+function asuntoMensaje(i, { factura, fecha, dia }) {
+  switch (i) {
+    case 0:
+      return `Recordatorio: su factura ${factura} vence el ${fecha}`
+    case 1:
+      return `Su factura ${factura} vence hoy`
+    case 2:
+      return `Factura ${factura} · ${dia} días de vencimiento`
+    default:
+      return `Factura ${factura}`
+  }
 }
 
 const HORAS = ['09:12', '08:05', '10:26', '16:41']

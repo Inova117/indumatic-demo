@@ -10,8 +10,14 @@ import ClientModal from './components/ClientModal'
 import PaymentModal from './components/PaymentModal'
 import Toaster from './components/Toaster'
 import Onboarding from './components/Onboarding'
-import { clientesIniciales, idsNoSePaganEnDemo, metricasBase } from './mockData'
-import { diasMora, esEnMora } from './utils'
+import {
+  clientesIniciales,
+  idsNoSePaganEnDemo,
+  idsFallaWhatsApp,
+  metricasBase,
+  saludCanalInicial,
+} from './mockData'
+import { diasMora, esEnMora, elegirCanal, motivoCanal } from './utils'
 
 export default function App() {
   const [active, setActive] = useState('cartera')
@@ -25,14 +31,21 @@ export default function App() {
   const [recordatoriosSesion, setRecordatoriosSesion] = useState(0)
   const [diasPromedio, setDiasPromedio] = useState(metricasBase.diasPromedioCobroInicial)
   const [tourOpen, setTourOpen] = useState(true)
+  const [salud, setSalud] = useState(saludCanalInicial)
 
   const toastId = useRef(0)
   const timers = useRef([])
 
   // ---- Datos derivados -----------------------------------------------------
   const clientes = useMemo(
-    () => invoices.map((c) => ({ ...c, diasMora: diasMora(c.vence) })),
-    [invoices],
+    () =>
+      invoices.map((c) => ({
+        ...c,
+        diasMora: diasMora(c.vence),
+        canal: elegirCanal(c, salud.estado),
+        motivoCanal: motivoCanal(c, salud.estado),
+      })),
+    [invoices, salud.estado],
   )
 
   const metrics = useMemo(() => {
@@ -86,7 +99,9 @@ export default function App() {
     [],
   )
 
-  // ---- Momento clave: ejecutar recordatorios -------------------------------
+  // ---- Momento clave: ejecutar recordatorios (MOTOR MULTICANAL) -------------
+  //  Por cada factura en mora el motor elige el canal, y si WhatsApp falla
+  //  (código 132015 de Meta) reenvía por email automáticamente. Nunca se detiene.
   const ejecutarRecordatorios = useCallback(() => {
     if (running) return
     setRunning(true)
@@ -97,41 +112,85 @@ export default function App() {
       return
     }
     const held = new Set(idsNoSePaganEnDemo)
-    const stepSend = 240
+    const fallaWA = new Set(idsFallaWhatsApp)
+    const stepSend = 260
     let lastT = 0
 
     overdue.forEach((inv, idx) => {
+      const canal = elegirCanal(inv, salud.estado)
+      // WhatsApp puede fallar → el motor detecta y cae a email solo.
+      const falla = canal === 'whatsapp' && fallaWA.has(inv.id)
       const tSend = 300 + idx * stepSend
-      const tSendTimer = setTimeout(() => {
-        setInvoices((prev) =>
-          prev.map((i) => (i.id === inv.id && i.estado === 'Vencido' ? { ...i, estado: 'En gestión' } : i)),
-        )
-        setRecordatoriosSesion((n) => n + 1)
-        triggerFlash(inv.id)
-        addToast({ tipo: 'whatsapp', text: inv.cliente })
-      }, tSend)
-      timers.current.push(tSendTimer)
+
+      timers.current.push(
+        setTimeout(() => {
+          setInvoices((prev) =>
+            prev.map((i) => (i.id === inv.id && i.estado === 'Vencido' ? { ...i, estado: 'En gestión' } : i)),
+          )
+          setRecordatoriosSesion((n) => n + 1)
+          triggerFlash(inv.id)
+          if (falla) {
+            // Fallo de WhatsApp + respaldo automático, en un solo aviso.
+            addToast({ tipo: 'fallback', text: inv.cliente })
+          } else {
+            addToast({
+              tipo: canal === 'whatsapp' ? 'whatsapp' : 'email',
+              text: inv.cliente,
+              motivo: canal === 'email' ? motivoCanal(inv, salud.estado) : null,
+            })
+          }
+        }, tSend),
+      )
       lastT = Math.max(lastT, tSend)
 
       if (!held.has(inv.id)) {
-        const tPay = tSend + 950
-        const tPayTimer = setTimeout(() => {
-          setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, estado: 'Pagado' } : i)))
-          setRecuperadoSesion((s) => s + inv.monto)
-          triggerFlash(inv.id)
-          addToast({ tipo: 'pago', text: inv.cliente, monto: inv.monto })
-        }, tPay)
-        timers.current.push(tPayTimer)
+        const tPay = tSend + 980
+        timers.current.push(
+          setTimeout(() => {
+            setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, estado: 'Pagado' } : i)))
+            setRecuperadoSesion((s) => s + inv.monto)
+            triggerFlash(inv.id)
+            addToast({ tipo: 'pago', text: inv.cliente, monto: inv.monto })
+          }, tPay),
+        )
         lastT = Math.max(lastT, tPay)
       }
     })
 
-    const finTimer = setTimeout(() => {
-      setRunning(false)
-      setDiasPromedio(metricasBase.diasPromedioCobroFinal)
-    }, lastT + 600)
-    timers.current.push(finTimer)
-  }, [running, invoices, addToast, triggerFlash])
+    timers.current.push(
+      setTimeout(() => {
+        setRunning(false)
+        setDiasPromedio(metricasBase.diasPromedioCobroFinal)
+      }, lastT + 600),
+    )
+  }, [running, invoices, salud.estado, addToast, triggerFlash])
+
+  // ---- Salud del canal: el sistema se auto-protege --------------------------
+  const simularBloqueos = useCallback(() => {
+    setSalud({ estado: 'amarillo', entregados: saludCanalInicial.entregados, bloqueos: 24, bajas: 19 })
+    addToast({ tipo: 'alerta', text: 'Calidad del número en riesgo — WhatsApp pausado' })
+  }, [addToast])
+
+  const restablecerSalud = useCallback(() => {
+    setSalud(saludCanalInicial)
+    addToast({ tipo: 'whatsapp', text: 'Calidad restablecida — WhatsApp reactivado' })
+  }, [addToast])
+
+  // ---- Reiniciar la demostración -------------------------------------------
+  const reiniciarDemo = useCallback(() => {
+    timers.current.forEach(clearTimeout)
+    timers.current = []
+    setInvoices(clientesIniciales)
+    setRecuperadoSesion(0)
+    setRecordatoriosSesion(0)
+    setDiasPromedio(metricasBase.diasPromedioCobroInicial)
+    setSalud(saludCanalInicial)
+    setFlashSet(new Set())
+    setToasts([])
+    setRunning(false)
+    setSelectedId(null)
+    setPaymentId(null)
+  }, [])
 
   const onPaid = useCallback(
     (inv) => {
@@ -163,6 +222,10 @@ export default function App() {
                 running={running}
                 onRowClick={(c) => setSelectedId(c.id)}
                 flashSet={flashSet}
+                salud={salud}
+                onSimular={simularBloqueos}
+                onRestablecer={restablecerSalud}
+                onReiniciar={reiniciarDemo}
               />
             )}
             {active === 'actividad' && <Actividad />}
@@ -184,6 +247,7 @@ export default function App() {
       {selected && (
         <ClientModal
           cliente={selected}
+          salud={salud.estado}
           onClose={() => setSelectedId(null)}
           onPagar={(c) => setPaymentId(c.id)}
         />

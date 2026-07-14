@@ -1,6 +1,6 @@
-import { EstadoBadge, TipoBadge } from './Badges'
+import { EstadoBadge, TipoBadge, CanalBadge } from './Badges'
 import { formatMoney, formatDate, iniciales } from '../utils'
-import { IconWhatsApp } from './icons'
+import { IconWhatsApp, IconMail } from './icons'
 
 function MoraCell({ mora, estado }) {
   if (estado === 'Pagado') {
@@ -23,11 +23,17 @@ export default function CarteraTable({ clientes, onRowClick, flashSet }) {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
         <div>
           <h3 className="text-sm font-bold text-slate-800">Detalle de cartera</h3>
-          <p className="text-xs text-slate-500">{clientes.length} facturas · clic para ver la conversación</p>
+          <p className="text-xs text-slate-500">{clientes.length} facturas · clic para ver la secuencia</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-400">
-          <IconWhatsApp className="w-4 h-4 text-wa-headerLight" />
-          Recordatorios por WhatsApp
+        <div className="flex items-center gap-3 text-xs text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <IconWhatsApp className="w-4 h-4 text-wa-headerLight" />
+            WhatsApp
+          </span>
+          <span className="flex items-center gap-1.5">
+            <IconMail className="w-4 h-4 text-brand-500" />
+            Email
+          </span>
         </div>
       </div>
 
@@ -41,6 +47,7 @@ export default function CarteraTable({ clientes, onRowClick, flashSet }) {
               <th className="px-3 py-3 text-right">Monto</th>
               <th className="px-3 py-3">Vence</th>
               <th className="px-3 py-3 text-center">Mora</th>
+              <th className="px-3 py-3">Canal</th>
               <th className="px-3 py-3 pr-5">Estado</th>
             </tr>
           </thead>
@@ -94,6 +101,10 @@ export default function CarteraTable({ clientes, onRowClick, flashSet }) {
                   {/* Mora */}
                   <td className="px-3 py-3.5 text-center">
                     <MoraCell mora={c.diasMora} estado={c.estado} />
+                  </td>
+                  {/* Canal elegido por el motor */}
+                  <td className="px-3 py-3.5">
+                    <CanalBadge canal={c.canal} motivo={c.motivoCanal} />
                   </td>
                   {/* Estado */}
                   <td className="px-3 py-3.5 pr-5">

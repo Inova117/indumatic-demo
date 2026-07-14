@@ -202,10 +202,30 @@ export default function Reportes({ metrics }) {
             })}
           </div>
 
-          <div className="mt-6 rounded-xl bg-slate-50 p-4">
-            <div className="text-[13px] leading-relaxed text-slate-600">
-              Los clientes <strong className="text-slate-800">informales</strong> concentran la mayor
-              mora, pero ahora se recuperan con recordatorios automáticos más frecuentes.
+          {/* Entregas por canal */}
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <h4 className="text-[13px] font-bold text-slate-800">Recordatorios por canal</h4>
+            <div className="mt-3 space-y-2.5">
+              {[
+                { c: 'WhatsApp', n: 96, pct: 68, color: 'bg-[#25d366]' },
+                { c: 'Email', n: 41, pct: 29, color: 'bg-brand-600' },
+                { c: 'Respaldo automático', n: 4, pct: 3, color: 'bg-amber-500' },
+              ].map((x) => (
+                <div key={x.c}>
+                  <div className="mb-1 flex items-center justify-between text-[12.5px]">
+                    <span className="font-medium text-slate-600">{x.c}</span>
+                    <span className="font-bold text-slate-700 tnum">{x.n}</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full ${x.color}`} style={{ width: `${x.pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 rounded-xl bg-slate-50 p-3.5 text-[12.5px] leading-relaxed text-slate-600">
+              4 mensajes de WhatsApp no se entregaron y el sistema los{' '}
+              <strong className="text-slate-800">reenvió por email automáticamente</strong>. Ninguna
+              factura se quedó sin gestión.
             </div>
           </div>
         </div>

@@ -1,4 +1,25 @@
-import { IconBuilding, IconUser, IconCheck } from './icons'
+import { IconBuilding, IconUser, IconCheck, IconWhatsApp, IconMail } from './icons'
+
+// ---- Badge de canal de contacto --------------------------------------------
+export function CanalBadge({ canal, motivo }) {
+  if (canal === 'whatsapp') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
+        <IconWhatsApp className="w-3.5 h-3.5 text-[#25d366]" />
+        WhatsApp
+      </span>
+    )
+  }
+  return (
+    <span
+      title={motivo || 'Email'}
+      className="inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200"
+    >
+      <IconMail className="w-3.5 h-3.5 text-brand-500" />
+      Email
+    </span>
+  )
+}
 
 // ---- Badge de estado -------------------------------------------------------
 const ESTADO_STYLES = {

@@ -1,7 +1,8 @@
 import SummaryCards from './SummaryCards'
 import CarteraChart from './CarteraChart'
 import CarteraTable from './CarteraTable'
-import { IconPlay, IconWhatsApp, IconLightning } from './icons'
+import SaludCanal from './SaludCanal'
+import { IconPlay, IconWhatsApp, IconMail, IconLightning } from './icons'
 
 function RunButton({ onRun, running }) {
   return (
@@ -33,7 +34,18 @@ function RunButton({ onRun, running }) {
   )
 }
 
-export default function Dashboard({ clientes, metrics, onRun, running, onRowClick, flashSet }) {
+export default function Dashboard({
+  clientes,
+  metrics,
+  onRun,
+  running,
+  onRowClick,
+  flashSet,
+  salud,
+  onSimular,
+  onRestablecer,
+  onReiniciar,
+}) {
   return (
     <div className="space-y-6">
       {/* Banner de acción — el momento clave de la demo */}
@@ -46,21 +58,33 @@ export default function Dashboard({ clientes, metrics, onRun, running, onRowClic
               <IconLightning className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-lg font-bold text-white">Campaña de recordatorios</h2>
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-brand-100">
                   <IconWhatsApp className="w-3 h-3" />
                   WhatsApp
                 </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-brand-100">
+                  <IconMail className="w-3 h-3" />
+                  Email
+                </span>
               </div>
               <p className="mt-1 max-w-lg text-[13px] leading-relaxed text-brand-100/80">
-                Envíe recordatorios automáticos a todos los clientes en mora con un clic. Observe cómo
-                la cartera vencida se reduce en tiempo real.
+                El motor elige el canal de cada cliente y, si un mensaje falla, lo reenvía solo por otro
+                canal. Un clic: observe cómo la cartera vencida se reduce en tiempo real.
               </p>
             </div>
           </div>
-          <div className="shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <RunButton onRun={onRun} running={running} />
+            <button
+              onClick={onReiniciar}
+              disabled={running}
+              className="rounded-xl border border-white/15 px-3 py-3 text-xs font-semibold text-brand-100 transition hover:bg-white/10 disabled:opacity-40"
+              title="Reiniciar la demostración"
+            >
+              Reiniciar
+            </button>
           </div>
         </div>
       </div>
@@ -70,12 +94,15 @@ export default function Dashboard({ clientes, metrics, onRun, running, onRowClic
         <SummaryCards metrics={metrics} />
       </div>
 
-      {/* Gráfico + nota */}
+      {/* Tabla + (salud del canal · gráfico) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2" data-tour="table">
           <CarteraTable clientes={clientes} onRowClick={onRowClick} flashSet={flashSet} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="flex flex-col gap-6 lg:col-span-1">
+          <div data-tour="salud">
+            <SaludCanal salud={salud} onSimular={onSimular} onRestablecer={onRestablecer} />
+          </div>
           <CarteraChart carteraVencida={metrics.carteraVencida} />
         </div>
       </div>
