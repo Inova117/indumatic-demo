@@ -1,4 +1,12 @@
-import { IconWallet, IconSegment, IconReport, IconShield, IconWorkflow, IconActivity } from './icons'
+import {
+  IconWallet,
+  IconSegment,
+  IconReport,
+  IconShield,
+  IconWorkflow,
+  IconActivity,
+  IconDoc,
+} from './icons'
 
 const NAV = [
   { id: 'cartera', label: 'Cartera', icon: IconWallet, desc: 'Dashboard' },
@@ -6,6 +14,7 @@ const NAV = [
   { id: 'segmentacion', label: 'Segmentación', icon: IconSegment, desc: 'Cadencias' },
   { id: 'automatizacion', label: 'Automatización', icon: IconWorkflow, desc: 'Flujo' },
   { id: 'reportes', label: 'Reportes', icon: IconReport, desc: 'Resultados' },
+  { id: 'propuesta', label: 'Propuesta', icon: IconDoc, desc: 'El proyecto' },
 ]
 
 export default function Sidebar({ active, onChange }) {

@@ -6,6 +6,7 @@ import Actividad from './components/Actividad'
 import Segmentacion from './components/Segmentacion'
 import Automatizaciones from './components/Automatizaciones'
 import Reportes from './components/Reportes'
+import Propuesta from './components/Propuesta'
 import ClientModal from './components/ClientModal'
 import PaymentModal from './components/PaymentModal'
 import Toaster from './components/Toaster'
@@ -232,6 +233,7 @@ export default function App() {
             {active === 'segmentacion' && <Segmentacion />}
             {active === 'automatizacion' && <Automatizaciones />}
             {active === 'reportes' && <Reportes metrics={metrics} />}
+            {active === 'propuesta' && <Propuesta />}
 
             <footer className="mt-8 flex items-center justify-center gap-2 text-[11px] text-slate-400">
               <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />

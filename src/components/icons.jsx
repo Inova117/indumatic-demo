@@ -322,6 +322,16 @@ export function IconPause({ className = 'w-4 h-4' }) {
   )
 }
 
+export function IconDoc({ className = 'w-5 h-5' }) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 17h4" />
+    </svg>
+  )
+}
+
 export function IconHelp({ className = 'w-5 h-5' }) {
   return (
     <svg className={className} {...base}>

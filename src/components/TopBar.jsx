@@ -6,6 +6,7 @@ const TITULOS = {
   segmentacion: { titulo: 'Segmentación', sub: 'Reglas de recordatorios por tipo de cliente' },
   automatizacion: { titulo: 'Automatización', sub: 'El proceso completo que corre detrás de cada recordatorio' },
   reportes: { titulo: 'Reportes', sub: 'Resultados de la gestión de cobranza' },
+  propuesta: { titulo: 'Propuesta', sub: 'Qué construimos, qué necesitamos y cuánto cuesta' },
 }
 
 export default function TopBar({ active, onStartTour }) {
